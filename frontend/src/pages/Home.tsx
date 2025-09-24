@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CircleCheck, Sparkles } from 'lucide-react'
+import { CircleCheck, Sparkles, Briefcase, UserCircle } from 'lucide-react'
 import { ErrorBoundary } from '../features/health/ErrorBoundary'
 import { HealthStatus } from '../features/health/HealthStatus'
 import { LoadingStatus } from '../features/health/LoadingStatus'
@@ -27,6 +27,50 @@ export default function Home() {
 
   return (
     <div className="space-y-12 py-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-12">
+        <div 
+          onClick={() => navigate('/register?role=candidate')}
+          className="p-6 rounded-lg border border-border bg-card text-card-foreground 
+                   shadow-sm hover:shadow-md transition-all cursor-pointer text-center"
+        >
+          <div className="flex flex-col items-center space-y-4">
+            <div className="p-4 rounded-full bg-primary/10">
+              <UserCircle className="w-12 h-12 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-semibold mb-2">Job Seekers</h2>
+              <p className="text-muted-foreground">
+                Find your dream job and apply with ease
+              </p>
+            </div>
+            <Button variant="default" className="mt-4">
+              Join as Job Seeker
+            </Button>
+          </div>
+        </div>
+
+        <div 
+          onClick={() => navigate('/register?role=employer')}
+          className="p-6 rounded-lg border border-border bg-card text-card-foreground 
+                   shadow-sm hover:shadow-md transition-all cursor-pointer text-center"
+        >
+          <div className="flex flex-col items-center space-y-4">
+            <div className="p-4 rounded-full bg-primary/10">
+              <Briefcase className="w-12 h-12 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-semibold mb-2">Employers</h2>
+              <p className="text-muted-foreground">
+                Post jobs and find the perfect candidates
+              </p>
+            </div>
+            <Button variant="default" className="mt-4">
+              Join as Employer
+            </Button>
+          </div>
+        </div>
+      </div>
+
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-4 text-foreground">
           Welcome to FastAPI React Starter
