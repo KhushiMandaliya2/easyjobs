@@ -2,6 +2,7 @@ export interface User {
   id: string
   email: string
   role: 'user' | 'admin' | 'moderator'
+  is_supervisor: boolean
 }
 
 export interface LoginCredentials {

@@ -8,12 +8,14 @@ export const AUTH_ACTIONS = {
   LOGIN_SUCCESS: 'LOGIN_SUCCESS',
   LOGOUT: 'LOGOUT',
   SET_LOADING: 'SET_LOADING',
+  SET_USER: 'SET_USER',
 } as const
 
 type AuthAction =
   | { type: typeof AUTH_ACTIONS.LOGIN_SUCCESS; payload: { token: string } }
   | { type: typeof AUTH_ACTIONS.LOGOUT }
   | { type: typeof AUTH_ACTIONS.SET_LOADING; payload: boolean }
+  | { type: typeof AUTH_ACTIONS.SET_USER; payload: { user: any } }
 
 const AuthStateContext = createContext<AuthState | null>(null)
 const AuthDispatchContext = createContext<{
@@ -50,6 +52,11 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         ...state,
         isLoading: action.payload,
       }
+    case AUTH_ACTIONS.SET_USER:
+      return {
+        ...state,
+        user: action.payload.user,
+      }
     default:
       return state
   }
@@ -61,6 +68,35 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [state, dispatch] = useReducer(authReducer, getInitialState())
+
+  // Try to fetch user data if token exists
+  useCallback(async () => {
+    const token = localStorage.getItem('token')
+    if (token && !state.user) {
+      try {
+        const response = await fetch(`${API_URL}/api/auth/me`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        })
+        
+        if (response.ok) {
+          const userData = await response.json()
+          dispatch({
+            type: AUTH_ACTIONS.SET_USER,
+            payload: { user: userData },
+          })
+        } else {
+          // If token is invalid, log out
+          localStorage.removeItem('token')
+          dispatch({ type: AUTH_ACTIONS.LOGOUT })
+        }
+      } catch (error) {
+        console.error('Failed to fetch user data:', error)
+      }
+    }
+  }, [state.user])()
+  
 
   const login = useCallback(async (credentials: LoginCredentials): Promise<AuthResult> => {
     dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: true })
@@ -90,6 +126,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
         payload: { token: data.access_token },
       })
 
+      // Fetch user data
+      const userResponse = await fetch(`${API_URL}/api/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${data.access_token}`,
+        },
+      })
+
+      if (userResponse.ok) {
+        const userData = await userResponse.json()
+        dispatch({
+          type: AUTH_ACTIONS.SET_USER,
+          payload: { user: userData },
+        })
+      }
+
       return { success: true, error: null }
     } catch (error) {
       dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false })
@@ -106,12 +157,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       try {
         const { confirmPassword, ...registerData } = credentials
+        // Ensure is_supervisor is a boolean
+        const dataToSend = {
+          ...registerData,
+          is_supervisor: Boolean(registerData.is_supervisor)
+        }
         const response = await fetch(`${API_URL}/api/auth/register`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(registerData),
+          body: JSON.stringify(dataToSend),
         })
 
         const data = await response.json()

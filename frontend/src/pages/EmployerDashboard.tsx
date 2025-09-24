@@ -1,9 +1,9 @@
 import { Suspense } from 'react'
-import { Search, Briefcase, Star } from 'lucide-react'
+import { Briefcase, Users, LineChart } from 'lucide-react'
 import { useAppDispatch } from '../context/AppContext'
 import { showNotification } from '../context/AppContext'
 
-export default function Dashboard() {
+export default function EmployerDashboard() {
   const dispatch = useAppDispatch()
 
   const handleCardClick = (title: string) => {
@@ -13,9 +13,9 @@ export default function Dashboard() {
   return (
     <div className="space-y-8">
       <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4 text-foreground">Job Seeker Dashboard</h1>
+        <h1 className="text-4xl font-bold mb-4 text-foreground">Employer Dashboard</h1>
         <p className="text-lg text-muted-foreground">
-          Find and manage your job applications
+          Manage your job postings and track applications
         </p>
       </div>
 
@@ -29,21 +29,21 @@ export default function Dashboard() {
       >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <DashboardCard
-            title="Find Jobs"
-            description="Search and explore job opportunities"
-            icon={<Search />}
-            onClick={handleCardClick}
-          />
-          <DashboardCard
-            title="My Applications"
-            description="Track your job applications"
+            title="Job Postings"
+            description="Create and manage job listings"
             icon={<Briefcase />}
             onClick={handleCardClick}
           />
           <DashboardCard
-            title="Saved Jobs"
-            description="View and manage saved jobs"
-            icon={<Star />}
+            title="Applications"
+            description="Review and manage applications"
+            icon={<Users />}
+            onClick={handleCardClick}
+          />
+          <DashboardCard
+            title="Analytics"
+            description="Track job posting performance"
+            icon={<LineChart />}
             onClick={handleCardClick}
           />
         </div>
