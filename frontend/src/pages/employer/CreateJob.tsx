@@ -70,7 +70,7 @@ export default function CreateJob() {
         salary_max: data.salary_max ? parseFloat(data.salary_max) : null,
       }
 
-      const response = await fetch('/api/jobs', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/jobs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
