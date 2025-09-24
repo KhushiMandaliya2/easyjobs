@@ -12,6 +12,7 @@ export interface LoginCredentials {
 export interface RegisterCredentials extends LoginCredentials {
   username: string
   confirmPassword?: string
+  is_supervisor?: boolean
 }
 
 export interface AuthResponse {

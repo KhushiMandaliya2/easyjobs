@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Suspense, cache } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/input'
@@ -16,9 +16,13 @@ import { useLoadingState } from '@/hooks/useLoadingState'
 
 function RegisterFormContent() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { register } = useAuth()
   const { toast } = useToast()
   const { state, setLoading, setError } = useLoadingState('register-form')
+  
+  const role = searchParams.get('role') || 'candidate'
+  const isEmployer = role === 'employer'
 
   const onSubmit = cache(async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -30,6 +34,7 @@ function RegisterFormContent() {
     const username = formData.get('username') as string
     const password = formData.get('password') as string
     const confirmPassword = formData.get('confirmPassword') as string
+    const is_supervisor = role === 'employer'
 
     if (password !== confirmPassword) {
       setError('Passwords do not match')
@@ -37,7 +42,7 @@ function RegisterFormContent() {
       return
     }
 
-    const result = await register({ email, username, password, confirmPassword })
+    const result = await register({ email, username, password, confirmPassword, is_supervisor })
 
     if (result.success) {
       toast({
@@ -60,8 +65,12 @@ function RegisterFormContent() {
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>Register</CardTitle>
-        <CardDescription>Create a new account</CardDescription>
+        <CardTitle>Register as {role === 'employer' ? 'Employer' : 'Job Seeker'}</CardTitle>
+        <CardDescription>
+          {role === 'employer' 
+            ? 'Create an employer account to post jobs'
+            : 'Create an account to apply for jobs'}
+        </CardDescription>
       </CardHeader>
       <form onSubmit={onSubmit}>
         <CardContent className="space-y-4">
