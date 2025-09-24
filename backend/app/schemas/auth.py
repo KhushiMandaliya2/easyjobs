@@ -16,6 +16,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     username: str
     password: str
+    is_supervisor: bool = False  # Default to regular user (job seeker)
 
 
 class LoginRequest(BaseModel):
@@ -30,6 +31,7 @@ class UserResponse(BaseModel):
     is_active: bool
     email_verified: bool
     role: str
+    is_supervisor: bool
     created_at: datetime
     updated_at: datetime
 
