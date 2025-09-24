@@ -20,11 +20,21 @@ export default function EmployerDashboard() {
 
   return (
     <div className="space-y-8">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4 text-foreground">Employer Dashboard</h1>
-        <p className="text-lg text-muted-foreground">
-          Manage your job postings and track applications
-        </p>
+      <div className="flex items-center justify-between">
+        <div className="text-center flex-1">
+          <h1 className="text-4xl font-bold mb-4 text-foreground">Employer Dashboard</h1>
+          <p className="text-lg text-muted-foreground">
+            Manage your job postings and track applications
+          </p>
+        </div>
+        <div>
+          <button
+            onClick={() => navigate('/employer/create-job')}
+            className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md"
+          >
+            Create New Job
+          </button>
+        </div>
       </div>
 
       <Suspense
