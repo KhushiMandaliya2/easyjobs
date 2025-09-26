@@ -4,6 +4,13 @@ import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/Button'
 import { format } from 'date-fns'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/Dialog"
+import { JobApplicationForm } from '@/features/applications/components/JobApplicationForm'
 
 interface Job {
   id: number
@@ -23,10 +30,11 @@ interface Job {
 
 export default function AvailableJobs() {
   const navigate = useNavigate()
-  const { token } = useAuth()
+  const { token, user } = useAuth()
   const { toast } = useToast()
   const [jobs, setJobs] = useState<Job[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedJobId, setSelectedJobId] = useState<number | null>(null)
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -66,6 +74,26 @@ export default function AvailableJobs() {
     return `$${min?.toLocaleString()} - $${max?.toLocaleString()}`
   }
 
+  const handleApply = (jobId: number) => {
+    if (user?.is_supervisor) {
+      toast({
+        title: 'Error',
+        description: 'Employers cannot apply for jobs.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setSelectedJobId(jobId);
+  };
+
+  const handleApplicationSuccess = () => {
+    setSelectedJobId(null);
+    toast({
+      title: 'Success',
+      description: 'Your application has been submitted successfully.',
+    });
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -88,9 +116,7 @@ export default function AvailableJobs() {
             <div
               key={job.id}
               className="p-6 rounded-lg border border-border bg-card hover:shadow-md transition-all"
-              role="button"
-              tabIndex={0}
-              onClick={() => navigate(`/jobs/${job.id}`)}
+              role="article"
             >
               <div className="space-y-4">
                 <div className="flex justify-between items-start">
@@ -99,29 +125,39 @@ export default function AvailableJobs() {
                     <div className="space-y-1 text-muted-foreground mt-2">
                       <p>{job.company_name}</p>
                       <p>{job.location}</p>
+                      <p>{job.employment_type}</p>
+                      <p>{formatSalaryRange(job.salary_min, job.salary_max)}</p>
+                      <p>Posted {format(new Date(job.created_at), 'PPP')}</p>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end">
-                    <span className="text-sm text-muted-foreground">
-                      Posted {format(new Date(job.created_at), 'MMM d, yyyy')}
-                    </span>
+                  <div className="flex gap-2">
+                    <Button onClick={() => navigate(`/jobs/${job.id}`)} variant="secondary">
+                      View Details
+                    </Button>
+                    <Button onClick={() => handleApply(job.id)}>
+                      Apply Now
+                    </Button>
                   </div>
                 </div>
-                
-                <div className="flex gap-4 text-sm">
-                  <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">
-                    {job.employment_type}
-                  </span>
-                  <span className="px-3 py-1 rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
-                    {formatSalaryRange(job.salary_min, job.salary_max)}
-                  </span>
-                </div>
-
-                <p className="text-muted-foreground line-clamp-2">{job.description}</p>
+                <p className="text-sm text-muted-foreground mt-4">{job.description}</p>
               </div>
             </div>
           ))
         )}
+
+        <Dialog open={selectedJobId !== null} onOpenChange={() => setSelectedJobId(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Apply for Job</DialogTitle>
+            </DialogHeader>
+            {selectedJobId && (
+              <JobApplicationForm
+                jobId={selectedJobId}
+                onSuccess={handleApplicationSuccess}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )

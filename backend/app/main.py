@@ -6,6 +6,7 @@ from app.utils.logger import setup_logger
 from app.routes.health import router as health_router
 from app.routes.auth import router as auth_router
 from app.routes.jobs import router as jobs_router
+from app.routes.applications import router as applications_router
 from app.db.database import init_db, engine
 from app.config import get_settings
 
@@ -54,5 +55,6 @@ app.add_middleware(
 app.include_router(health_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
 app.include_router(jobs_router, prefix="/api")
+app.include_router(applications_router, prefix="/api")
 
 logger.info("Application routes configured")

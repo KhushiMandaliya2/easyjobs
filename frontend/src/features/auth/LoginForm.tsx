@@ -18,11 +18,11 @@ function LoginFormContent() {
   const navigate = useNavigate()
   const { login } = useAuth()
   const { toast } = useToast()
-  const { state, setLoading, setError } = useLoadingState('login-form')
+  const { isLoading, error, startLoading, stopLoading, setError } = useLoadingState('login-form')
 
   const onSubmit = cache(async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setLoading(true)
+    startLoading()
     setError(null)
 
     const formData = new FormData(event.currentTarget)
@@ -46,7 +46,7 @@ function LoginFormContent() {
       })
     }
 
-    setLoading(false)
+    stopLoading()
   })
 
   return (
@@ -64,7 +64,7 @@ function LoginFormContent() {
               type="email"
               placeholder="name@example.com"
               required
-              disabled={state.isLoading}
+              disabled={isLoading}
               className="w-full"
             />
           </div>
@@ -75,23 +75,23 @@ function LoginFormContent() {
               type="password"
               placeholder="Enter your password"
               required
-              disabled={state.isLoading}
+              disabled={isLoading}
               className="w-full"
             />
           </div>
-          {state.error && <div className="text-sm text-destructive">{state.error}</div>}
+          {error && <div className="text-sm text-destructive">{error}</div>}
         </CardContent>
         <CardFooter className="flex justify-between">
           <Button
             variant="outline"
             onClick={() => navigate('/register')}
             type="button"
-            disabled={state.isLoading}
+            disabled={isLoading}
           >
             Register
           </Button>
-          <Button type="submit" disabled={state.isLoading}>
-            {state.isLoading ? 'Logging in...' : 'Login'}
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? 'Logging in...' : 'Login'}
           </Button>
         </CardFooter>
       </form>

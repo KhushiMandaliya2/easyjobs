@@ -19,14 +19,14 @@ function RegisterFormContent() {
   const [searchParams] = useSearchParams()
   const { register } = useAuth()
   const { toast } = useToast()
-  const { state, setLoading, setError } = useLoadingState('register-form')
+  const { isLoading, error, startLoading, stopLoading, setError } = useLoadingState('register-form')
   
   const role = searchParams.get('role') || 'candidate'
   const isEmployer = role === 'employer'
 
   const onSubmit = cache(async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setLoading(true)
+    startLoading()
     setError(null)
 
     const formData = new FormData(event.currentTarget)
@@ -38,7 +38,7 @@ function RegisterFormContent() {
 
     if (password !== confirmPassword) {
       setError('Passwords do not match')
-      setLoading(false)
+      stopLoading()
       return
     }
 
@@ -59,7 +59,7 @@ function RegisterFormContent() {
       })
     }
 
-    setLoading(false)
+    stopLoading()
   })
 
   return (
@@ -81,7 +81,7 @@ function RegisterFormContent() {
               type="email"
               placeholder="name@example.com"
               required
-              disabled={state.isLoading}
+              disabled={isLoading}
               className="w-full"
             />
           </div>
@@ -92,7 +92,7 @@ function RegisterFormContent() {
               type="text"
               placeholder="Choose a username"
               required
-              disabled={state.isLoading}
+              disabled={isLoading}
               className="w-full"
             />
           </div>
@@ -103,7 +103,7 @@ function RegisterFormContent() {
               type="password"
               placeholder="Enter your password"
               required
-              disabled={state.isLoading}
+              disabled={isLoading}
               className="w-full"
             />
           </div>
@@ -114,23 +114,23 @@ function RegisterFormContent() {
               type="password"
               placeholder="Confirm your password"
               required
-              disabled={state.isLoading}
+              disabled={isLoading}
               className="w-full"
             />
           </div>
-          {state.error && <div className="text-sm text-destructive">{state.error}</div>}
+          {error && <div className="text-sm text-destructive">{error}</div>}
         </CardContent>
         <CardFooter className="flex justify-between">
           <Button
             variant="outline"
             onClick={() => navigate('/login')}
             type="button"
-            disabled={state.isLoading}
+            disabled={isLoading}
           >
             Login
           </Button>
-          <Button type="submit" disabled={state.isLoading}>
-            {state.isLoading ? 'Creating account...' : 'Register'}
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? 'Creating account...' : 'Register'}
           </Button>
         </CardFooter>
       </form>
