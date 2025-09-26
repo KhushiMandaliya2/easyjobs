@@ -1,23 +1,22 @@
-// Ensure the path is correct and the file exists
-import axios from 'axios';
+import { api } from '@/lib/axios';
 import { JobApplication, JobApplicationCreate, JobApplicationUpdate } from '@/types/application';
 
 export const applyForJob = async (applicationData: JobApplicationCreate) => {
-  const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/applications`, applicationData);
+  const response = await api.post('/api/applications', applicationData);
   return response.data;
 };
 
 export const getMyApplications = async () => {
-  const response = await axios.get<JobApplication[]>(`${import.meta.env.VITE_API_URL}/api/applications/my-applications`);
+  const response = await api.get<JobApplication[]>('/api/applications/my-applications');
   return response.data;
 };
 
 export const getJobApplications = async (jobId: number) => {
-  const response = await axios.get<JobApplication[]>(`${import.meta.env.VITE_API_URL}/api/applications/job/${jobId}`);
+  const response = await api.get<JobApplication[]>(`/api/applications/job/${jobId}`);
   return response.data;
 };
 
 export const updateApplicationStatus = async (applicationId: number, update: JobApplicationUpdate) => {
-  const response = await axios.put(`${import.meta.env.VITE_API_URL}/api/applications/${applicationId}/status`, update);
+  const response = await api.put(`/api/applications/${applicationId}/status`, update);
   return response.data;
 };
