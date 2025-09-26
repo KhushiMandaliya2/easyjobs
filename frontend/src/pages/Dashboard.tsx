@@ -2,12 +2,20 @@ import { Suspense } from 'react'
 import { Search, Briefcase, Star } from 'lucide-react'
 import { useAppDispatch } from '../context/AppContext'
 import { showNotification } from '../context/AppContext'
+import { useNavigate } from 'react-router-dom'
 
 export default function Dashboard() {
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
 
   const handleCardClick = (title: string) => {
-    showNotification(dispatch, `Clicked ${title} card`, 'info')
+    switch (title) {
+      case 'Find Jobs':
+        navigate('/jobs')
+        break
+      default:
+        showNotification(dispatch, `Clicked ${title} card`, 'info')
+    }
   }
 
   return (
