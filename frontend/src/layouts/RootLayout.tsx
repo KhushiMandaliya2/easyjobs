@@ -10,12 +10,20 @@ const publicNavLinks = [
   { to: '/about', label: 'About' },
 ] as const
 
-const privateNavLinks = [{ to: '/dashboard', label: 'Dashboard' }] as const
+const jobSeekerLinks = [
+  { to: '/dashboard', label: 'Dashboard' },
+  { to: '/jobs', label: 'Find Jobs' },
+] as const
+
+const employerLinks = [
+  { to: '/dashboard', label: 'Dashboard' },
+  { to: '/employer/jobs', label: 'Job Postings' },
+] as const
 
 function Navigation() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { isAuthenticated, logout } = useAuth()
+  const { isAuthenticated, user, logout } = useAuth()
   const linkBase =
     'text-card-foreground hover:text-primary hover:bg-accent/20 px-3 py-2 rounded-md text-sm font-medium transition-colors'
   const activeLink = 'text-primary font-semibold underline underline-offset-4'
@@ -39,8 +47,8 @@ function Navigation() {
                 {label}
               </Link>
             ))}
-            {isAuthenticated &&
-              privateNavLinks.map(({ to, label }) => (
+            {isAuthenticated && (user?.is_supervisor ? 
+              employerLinks.map(({ to, label }) => (
                 <Link
                   key={to}
                   to={to}
@@ -48,7 +56,18 @@ function Navigation() {
                 >
                   {label}
                 </Link>
-              ))}
+              ))
+              :
+              jobSeekerLinks.map(({ to, label }) => (
+                <Link
+                  key={to}
+                  to={to}
+                  className={location.pathname === to ? `${linkBase} ${activeLink}` : linkBase}
+                >
+                  {label}
+                </Link>
+              ))
+            )}
           </div>
           <div className="flex items-center space-x-4">
             <ThemeToggle />

@@ -11,6 +11,7 @@ const Login = lazy(() => import('../pages/Login'))
 const Register = lazy(() => import('../pages/Register'))
 const JobPostings = lazy(() => import('../pages/employer/JobPostings'))
 const CreateJob = lazy(() => import('../pages/employer/CreateJob'))
+const AvailableJobs = lazy(() => import('../pages/jobs/AvailableJobs'))
 
 // Error boundary component
 function ErrorBoundary() {
@@ -62,6 +63,10 @@ const routes = {
     {
       path: 'employer/create-job',
       element: <CreateJob />,
+    },
+    {
+      path: 'jobs',
+      element: <AvailableJobs />,
     },
   ],
 }
