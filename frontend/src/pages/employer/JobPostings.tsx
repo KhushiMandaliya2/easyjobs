@@ -1,8 +1,9 @@
-import { Suspense } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/context/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import { useToast } from '@/hooks/use-toast'
 
 interface Job {
   id: number
@@ -11,24 +12,52 @@ interface Job {
   location: string
   status: string
   created_at: string
+  description: string
+  requirements: string
+  salary_min?: number
+  salary_max?: number
+  employment_type: string
+  updated_at: string
+  posted_by_id: number
 }
 
 export default function JobPostings() {
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { token } = useAuth()
+  const { toast } = useToast()
+  const [jobs, setJobs] = useState<Job[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Placeholder data - we'll replace this with actual API call later
-  const jobs: Job[] = [
-    {
-      id: 1,
-      title: "Senior Software Engineer",
-      company_name: "Tech Corp",
-      location: "San Francisco, CA",
-      status: "active",
-      created_at: "2025-09-23"
-    },
-    // Add more placeholder jobs if needed
-  ]
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/jobs/my-jobs`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch jobs')
+        }
+
+        const data = await response.json()
+        setJobs(data)
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: error instanceof Error ? error.message : 'Failed to fetch jobs',
+          variant: 'destructive',
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    if (token) {
+      fetchJobs()
+    }
+  }, [token, toast])
 
   return (
     <div className="space-y-8">
@@ -37,34 +66,31 @@ export default function JobPostings() {
           <h1 className="text-3xl font-bold text-foreground">Job Postings</h1>
           <p className="text-muted-foreground">Manage your job listings</p>
         </div>
-        <Button onClick={() => navigate('/employer/jobs/new')}>
+        <Button onClick={() => navigate('/employer/create-job')}>
           <Plus className="w-4 h-4 mr-2" />
-          Create Job Posting
+          Create New Job
         </Button>
       </div>
 
-      <Suspense
-        fallback={
+      <div className="space-y-4">
+        {isLoading ? (
           <div className="text-center py-8 text-muted-foreground">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
             Loading jobs...
           </div>
-        }
-      >
-        <div className="space-y-4">
-          {jobs.length === 0 ? (
-            <div className="text-center py-12 bg-muted rounded-lg">
-              <p className="text-muted-foreground">No job postings yet.</p>
-              <Button
-                variant="link"
-                className="mt-2"
-                onClick={() => navigate('/employer/jobs/new')}
-              >
-                Create your first job posting
-              </Button>
-            </div>
-          ) : (
-            jobs.map((job) => (
+        ) : jobs.length === 0 ? (
+          <div className="text-center py-12 bg-muted rounded-lg">
+            <p className="text-muted-foreground">No job postings yet.</p>
+            <Button
+              variant="link"
+              className="mt-2"
+              onClick={() => navigate('/employer/create-job')}
+            >
+              Create your first job posting
+            </Button>
+          </div>
+        ) : (
+          jobs.map((job) => (
               <div
                 key={job.id}
                 className="p-6 rounded-lg border border-border bg-card hover:shadow-md transition-all"
@@ -97,7 +123,6 @@ export default function JobPostings() {
             ))
           )}
         </div>
-      </Suspense>
     </div>
   )
 }
