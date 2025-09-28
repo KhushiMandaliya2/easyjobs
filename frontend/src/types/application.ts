@@ -1,3 +1,11 @@
+import { Job } from './job';
+
+interface User {
+  id: number;
+  username: string;
+  email: string;
+}
+
 export interface JobApplication {
   id: number;
   job_id: number;
@@ -7,6 +15,8 @@ export interface JobApplication {
   resume_url: string;
   created_at: string;
   updated_at: string;
+  applicant?: User;
+  job?: Job;
 }
 
 export interface JobApplicationCreate {

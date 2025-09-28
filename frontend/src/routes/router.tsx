@@ -14,6 +14,7 @@ const CreateJob = lazy(() => import('../pages/employer/CreateJob'))
 const AvailableJobs = lazy(() => import('../pages/jobs/AvailableJobs'))
 const JobDetails = lazy(() => import('../pages/jobs/JobDetails'))
 const MyApplications = lazy(() => import('../pages/jobs/MyApplications'))
+const Applicants = lazy(() => import('../pages/employer/Applicants'))
 
 // Error boundary component
 function ErrorBoundary() {
@@ -77,6 +78,10 @@ const routes = {
     {
       path: 'my-applications',
       element: <MyApplications />,
+    },
+    {
+      path: 'employer/applicants',
+      element: <Applicants />,
     },
   ],
 }

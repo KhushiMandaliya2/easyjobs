@@ -95,7 +95,8 @@ async def get_applications_by_job(db: AsyncSession, job_id: int):
         .filter(JobApplication.job_id == job_id)
         .order_by(JobApplication.created_at.desc())
         .options(
-            selectinload(JobApplication.job)
+            selectinload(JobApplication.job),
+            selectinload(JobApplication.applicant)
         )
     )
     result = await db.execute(stmt)

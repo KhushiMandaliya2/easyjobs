@@ -13,6 +13,9 @@ export default function EmployerDashboard() {
       case 'Job Postings':
         navigate('/employer/jobs')
         break
+      case 'Applications':
+        navigate('/employer/applicants')
+        break
       default:
         showNotification(dispatch, `Clicked ${title} card`, 'info')
     }

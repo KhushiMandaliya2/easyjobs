@@ -3,6 +3,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { getJobApplications, updateApplicationStatus } from '../api/applications';
 import { JobApplication, ApplicationStatus } from '@/types/application';
+import { format } from 'date-fns';
 import { Button } from '@/components/ui/Button';
 import {
   Table,
@@ -15,10 +16,9 @@ import {
 
 interface JobApplicationsListProps {
   jobId: number;
-  showMyApplications?: boolean;
 }
 
-export function JobApplicationsList({ jobId, showMyApplications = false }: JobApplicationsListProps) {
+export function JobApplicationsList({ jobId }: JobApplicationsListProps) {
   const { toast } = useToast();
   const { isLoading, error, startLoading, stopLoading } = useLoadingState();
   const [applications, setApplications] = useState<JobApplication[]>([]);
@@ -30,7 +30,7 @@ export function JobApplicationsList({ jobId, showMyApplications = false }: JobAp
   const loadApplications = async () => {
     try {
       startLoading();
-      const data = await (showMyApplications ? getJobApplications(jobId) : getJobApplications(jobId));
+      const data = await getJobApplications(jobId);
       setApplications(data);
     } catch (error) {
       toast({
@@ -80,8 +80,10 @@ export function JobApplicationsList({ jobId, showMyApplications = false }: JobAp
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Applicant</TableHead>
+              <TableHead>Applicant ID</TableHead>
+              <TableHead>Cover Letter</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Applied On</TableHead>
               <TableHead>Resume</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -89,8 +91,24 @@ export function JobApplicationsList({ jobId, showMyApplications = false }: JobAp
           <TableBody>
             {applications.map((application) => (
               <TableRow key={application.id}>
-                <TableCell>{application.applicant_id}</TableCell>
-                <TableCell>{application.status}</TableCell>
+                <TableCell>{application.applicant?.username || application.applicant_id}</TableCell>
+                <TableCell className="max-w-md">
+                  <div className="truncate">{application.cover_letter}</div>
+                </TableCell>
+                <TableCell>
+                  <span className={`inline-block px-3 py-1 rounded-full text-sm ${
+                    application.status === ApplicationStatus.PENDING
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : application.status === ApplicationStatus.UNDER_REVIEW
+                      ? 'bg-blue-100 text-blue-800'
+                      : application.status === ApplicationStatus.ACCEPTED
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {application.status}
+                  </span>
+                </TableCell>
+                <TableCell>{format(new Date(application.created_at), 'PPP')}</TableCell>
                 <TableCell>
                   <a
                     href={application.resume_url}
