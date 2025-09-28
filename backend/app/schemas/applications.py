@@ -10,12 +10,19 @@ class JobApplicationBase(BaseModel):
     resume_url: str
 
 
+from enum import Enum
+
+class ApplicationStatus(str, Enum):
+    PENDING = "pending"
+    UNDER_REVIEW = "under_review"
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
+
 class JobApplicationCreate(JobApplicationBase):
     job_id: int
 
-
-class JobApplicationUpdate(JobApplicationBase):
-    status: Optional[str] = None
+class JobApplicationUpdate(BaseModel):
+    status: str  # Will validate against ApplicationStatus values
 
 
 class JobApplicationResponse(JobApplicationBase):

@@ -78,10 +78,14 @@ async def update_application(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only employers can update application status"
         )
+    
+    # Ensure the status is lowercase to match our expected values
+    status_value = application_update.status.lower()
+    
     return await update_application_status(
         db,
         application_id,
-        application_update.status,
+        status_value,
         current_user.id
     )
 

@@ -47,17 +47,43 @@ export function JobApplicationsList({ jobId }: JobApplicationsListProps) {
     try {
       startLoading();
       await updateApplicationStatus(applicationId, { status: newStatus });
-      await loadApplications(); // Refresh the list
+      
+      // Update the application status locally first for immediate feedback
+      setApplications(prevApplications => 
+        prevApplications.map(app => 
+          app.id === applicationId ? { ...app, status: newStatus } : app
+        )
+      );
+
+      // Show appropriate message based on status
+      let toastMessage = 'Application status updated successfully.';
+      let toastVariant: 'default' | 'destructive' = 'default';
+
+      if (newStatus === ApplicationStatus.REJECTED) {
+        toastMessage = 'Application has been rejected.';
+        toastVariant = 'destructive';
+      } else if (newStatus === ApplicationStatus.ACCEPTED) {
+        toastMessage = 'Application has been accepted.';
+      } else if (newStatus === ApplicationStatus.UNDER_REVIEW) {
+        toastMessage = 'Application is now under review.';
+      }
+
       toast({
-        title: 'Success',
-        description: 'Application status updated successfully.',
+        title: 'Status Updated',
+        description: toastMessage,
+        variant: toastVariant,
       });
+
+      // Refresh the list to ensure data consistency
+      await loadApplications();
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to update application status.',
+        description: 'Failed to update application status. Please try again.',
         variant: 'destructive',
       });
+      // Refresh the list to ensure data consistency
+      await loadApplications();
     } finally {
       stopLoading();
     }
@@ -90,10 +116,19 @@ export function JobApplicationsList({ jobId }: JobApplicationsListProps) {
           </TableHeader>
           <TableBody>
             {applications.map((application) => (
-              <TableRow key={application.id}>
-                <TableCell>{application.applicant?.username || application.applicant_id}</TableCell>
+              <TableRow 
+                key={application.id} 
+                className={application.status === ApplicationStatus.REJECTED ? "text-muted-foreground" : ""}
+              >
+                <TableCell>
+                  <span className={application.status === ApplicationStatus.REJECTED ? "line-through" : ""}>
+                    {application.applicant?.username || application.applicant_id}
+                  </span>
+                </TableCell>
                 <TableCell className="max-w-md">
-                  <div className="truncate">{application.cover_letter}</div>
+                  <div className={`truncate ${application.status === ApplicationStatus.REJECTED ? "line-through" : ""}`}>
+                    {application.cover_letter}
+                  </div>
                 </TableCell>
                 <TableCell>
                   <span className={`inline-block px-3 py-1 rounded-full text-sm ${

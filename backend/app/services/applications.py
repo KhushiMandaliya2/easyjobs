@@ -2,7 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from app.db.models import JobApplication, Job
-from app.schemas.applications import JobApplicationCreate, JobApplicationUpdate
+from app.schemas.applications import JobApplicationCreate, JobApplicationUpdate, ApplicationStatus
 from fastapi import HTTPException, status
 
 
@@ -75,7 +75,8 @@ async def get_application_by_id(db: AsyncSession, application_id: int):
         select(JobApplication)
         .filter(JobApplication.id == application_id)
         .options(
-            selectinload(JobApplication.job)
+            selectinload(JobApplication.job),
+            selectinload(JobApplication.applicant)
         )
     )
     result = await db.execute(stmt)
@@ -118,14 +119,41 @@ async def get_applications_by_applicant(db: AsyncSession, applicant_id: int):
     return result.scalars().all()
 
 
+async def get_application_with_relationships(db: AsyncSession, application_id: int):
+    """Get a job application with all its relationships loaded."""
+    stmt = (
+        select(JobApplication)
+        .where(JobApplication.id == application_id)
+        .options(
+            selectinload(JobApplication.job),
+            selectinload(JobApplication.applicant)
+        )
+    )
+    result = await db.execute(stmt)
+    application = result.scalar_one_or_none()
+    
+    if not application:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Application not found"
+        )
+    return application
+
 async def update_application_status(
     db: AsyncSession,
     application_id: int,
-    status: str,
+    new_status: str,
     employer_id: int
 ):
     """Update a job application's status."""
-    application = await get_application_by_id(db, application_id)
+    # Validate the status value
+    if new_status not in ["pending", "under_review", "accepted", "rejected"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid status value"
+        )
+    # Get application with relationships loaded
+    application = await get_application_with_relationships(db, application_id)
     
     # Verify the employer owns the job
     if application.job.posted_by_id != employer_id:
@@ -134,7 +162,10 @@ async def update_application_status(
             detail="You can only update applications for jobs you posted"
         )
     
-    application.status = status
+    # Update the status
+    application.status = new_status
     await db.commit()
-    await db.refresh(application)
-    return application
+    
+    # Refresh with relationships
+    refreshed_application = await get_application_with_relationships(db, application_id)
+    return refreshed_application

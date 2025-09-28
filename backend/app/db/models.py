@@ -80,7 +80,7 @@ class JobApplication(Base):
     # Application details
     cover_letter = Column(Text, nullable=True)
     resume_url = Column(String, nullable=False)  # URL or path to stored resume
-    status = Column(String, default="pending")  # pending, reviewed, accepted, rejected
+    status = Column(String, default="pending")  # pending, under_review, accepted, rejected
     
     # Timestamps
     created_at = Column(DateTime, default=func.now())

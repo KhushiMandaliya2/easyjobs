@@ -10,7 +10,7 @@ export interface JobApplication {
   id: number;
   job_id: number;
   applicant_id: number;
-  status: ApplicationStatus;
+  status: string;
   cover_letter: string;
   resume_url: string;
   created_at: string;
@@ -26,7 +26,7 @@ export interface JobApplicationCreate {
 }
 
 export interface JobApplicationUpdate {
-  status: ApplicationStatus;
+  status: string;
 }
 
 export enum ApplicationStatus {
