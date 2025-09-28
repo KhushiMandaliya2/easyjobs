@@ -1,5 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from app.db.models import JobApplication, Job
 from app.schemas.applications import JobApplicationCreate, JobApplicationUpdate
 from fastapi import HTTPException, status
@@ -70,9 +71,14 @@ async def create_application(
 
 async def get_application_by_id(db: AsyncSession, application_id: int):
     """Get a specific job application."""
-    result = await db.execute(
-        select(JobApplication).filter(JobApplication.id == application_id)
+    stmt = (
+        select(JobApplication)
+        .filter(JobApplication.id == application_id)
+        .options(
+            selectinload(JobApplication.job)
+        )
     )
+    result = await db.execute(stmt)
     application = result.scalar_one_or_none()
     if not application:
         raise HTTPException(
@@ -84,21 +90,30 @@ async def get_application_by_id(db: AsyncSession, application_id: int):
 
 async def get_applications_by_job(db: AsyncSession, job_id: int):
     """Get all applications for a specific job."""
-    result = await db.execute(
+    stmt = (
         select(JobApplication)
         .filter(JobApplication.job_id == job_id)
         .order_by(JobApplication.created_at.desc())
+        .options(
+            selectinload(JobApplication.job)
+        )
     )
+    result = await db.execute(stmt)
     return result.scalars().all()
 
 
 async def get_applications_by_applicant(db: AsyncSession, applicant_id: int):
     """Get all applications by a specific applicant."""
-    result = await db.execute(
+    # Include the job relationship in the query
+    stmt = (
         select(JobApplication)
         .filter(JobApplication.applicant_id == applicant_id)
         .order_by(JobApplication.created_at.desc())
+        .options(
+            selectinload(JobApplication.job)
+        )
     )
+    result = await db.execute(stmt)
     return result.scalars().all()
 
 
