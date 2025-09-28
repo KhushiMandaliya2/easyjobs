@@ -13,6 +13,9 @@ export default function Dashboard() {
       case 'Find Jobs':
         navigate('/jobs')
         break
+      case 'My Applications':
+        navigate('/my-applications')
+        break
       default:
         showNotification(dispatch, `Clicked ${title} card`, 'info')
     }
