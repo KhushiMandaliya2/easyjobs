@@ -58,7 +58,11 @@ engine = create_engine_with_retry(get_database_url())
 
 # Create async session maker
 AsyncSessionLocal = async_sessionmaker(
-    engine, class_=AsyncSession, expire_on_commit=False, autocommit=False, autoflush=False
+    engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+    autocommit=False,
+    autoflush=False
 )
 
 
@@ -71,17 +75,17 @@ async def get_db() -> AsyncSession:
     Dependency that provides a database session.
     Ensures proper handling of connections and error cases.
     """
-    session = AsyncSessionLocal()
-    logger.debug("Creating new database session")
-    try:
-        yield session
-    except Exception as e:
-        logger.error(f"Database session error: {str(e)}")
-        await session.rollback()
-        raise
-    finally:
-        logger.debug("Closing database session")
-        await session.close()
+    async with AsyncSessionLocal() as session:
+        logger.debug("Creating new database session")
+        try:
+            yield session
+            await session.commit()
+        except Exception as e:
+            logger.error(f"Database session error: {str(e)}")
+            await session.rollback()
+            raise
+        finally:
+            logger.debug("Closing database session")
 
 
 async def init_db() -> None:

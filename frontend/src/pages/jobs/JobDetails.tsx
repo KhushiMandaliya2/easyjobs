@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/Button';
+import { CheckCircle2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -12,6 +13,7 @@ import {
 } from '@/components/ui/Dialog';
 import { JobApplicationForm } from '@/features/applications/components/JobApplicationForm';
 import { JobApplicationsList } from '@/features/applications/components/JobApplicationsList';
+import { checkIfApplied } from '@/features/applications/api/applications';
 
 interface Job {
   id: number;
@@ -27,6 +29,7 @@ interface Job {
   employment_type: string;
   updated_at: string;
   posted_by_id: number;
+  has_applied?: boolean;
 }
 
 export default function JobDetails() {
@@ -51,7 +54,8 @@ export default function JobDetails() {
         }
 
         const data = await response.json();
-        setJob(data);
+        const hasApplied = await checkIfApplied(data.id);
+        setJob({ ...data, has_applied: hasApplied });
       } catch (error) {
         toast({
           title: 'Error',
@@ -137,14 +141,21 @@ export default function JobDetails() {
         </section>
 
         {!user?.is_supervisor && (
-          <Button onClick={handleApply} size="lg">
-            Apply for this position
-          </Button>
+          job.has_applied ? (
+            <div className="flex items-center gap-2 text-green-600 dark:text-green-500">
+              <CheckCircle2 className="h-5 w-5" />
+              <span>You have already applied to this position</span>
+            </div>
+          ) : (
+            <Button onClick={handleApply} size="lg">
+              Apply for this position
+            </Button>
+          )
         )}
       </div>
 
       {/* Show applications list for employers */}
-      {user?.is_supervisor && job.posted_by_id === user.id && (
+      {user?.is_supervisor && job.posted_by_id === Number(user.id) && (
         <div className="mt-8">
           <JobApplicationsList jobId={job.id} />
         </div>

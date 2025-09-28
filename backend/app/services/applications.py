@@ -5,6 +5,21 @@ from app.schemas.applications import JobApplicationCreate, JobApplicationUpdate
 from fastapi import HTTPException, status
 
 
+async def check_application_exists(
+    db: AsyncSession,
+    job_id: int,
+    applicant_id: int
+) -> bool:
+    """Check if a user has already applied to a specific job."""
+    result = await db.execute(
+        select(JobApplication).filter(
+            JobApplication.job_id == job_id,
+            JobApplication.applicant_id == applicant_id
+        )
+    )
+    return result.scalar_one_or_none() is not None
+
+
 async def create_application(
     db: AsyncSession,
     application_data: JobApplicationCreate,
@@ -47,6 +62,9 @@ async def create_application(
     db.add(application)
     await db.commit()
     await db.refresh(application)
+    
+    # Explicitly load relationships
+    await db.refresh(application, ['job', 'applicant'])
     return application
 
 

@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/Button'
 import { format } from 'date-fns'
+import { CheckCircle2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -11,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/Dialog"
 import { JobApplicationForm } from '@/features/applications/components/JobApplicationForm'
+import { checkIfApplied } from '@/features/applications/api/applications'
 
 interface Job {
   id: number
@@ -26,6 +28,7 @@ interface Job {
   employment_type: string
   updated_at: string
   posted_by_id: number
+  has_applied?: boolean
 }
 
 export default function AvailableJobs() {
@@ -50,7 +53,16 @@ export default function AvailableJobs() {
         }
 
         const data = await response.json()
-        setJobs(data)
+        
+        // Check application status for each job
+        const jobsWithApplicationStatus = await Promise.all(
+          data.map(async (job: Job) => {
+            const hasApplied = await checkIfApplied(job.id)
+            return { ...job, has_applied: hasApplied }
+          })
+        )
+        
+        setJobs(jobsWithApplicationStatus)
       } catch (error) {
         toast({
           title: 'Error',
@@ -134,9 +146,16 @@ export default function AvailableJobs() {
                     <Button onClick={() => navigate(`/jobs/${job.id}`)} variant="secondary">
                       View Details
                     </Button>
-                    <Button onClick={() => handleApply(job.id)}>
-                      Apply Now
-                    </Button>
+                    {job.has_applied ? (
+                      <div className="flex items-center gap-2 text-green-600 dark:text-green-500">
+                        <CheckCircle2 className="h-5 w-5" />
+                        <span>Applied</span>
+                      </div>
+                    ) : (
+                      <Button onClick={() => handleApply(job.id)}>
+                        Apply Now
+                      </Button>
+                    )}
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground mt-4">{job.description}</p>

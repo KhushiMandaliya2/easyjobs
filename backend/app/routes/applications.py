@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from app.db.database import get_db
-from app.db.models import User
+from app.db.models import User, JobApplication
 from app.schemas.applications import (
     JobApplicationCreate,
     JobApplicationUpdate,
@@ -13,7 +13,8 @@ from app.services.applications import (
     get_application_by_id,
     get_applications_by_job,
     get_applications_by_applicant,
-    update_application_status
+    update_application_status,
+    check_application_exists
 )
 from app.routes.auth import get_current_user
 
@@ -83,3 +84,17 @@ async def update_application(
         application_update.status,
         current_user.id
     )
+
+
+@router.get("/check/{job_id}")
+async def check_if_applied(
+    job_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Check if the current user has applied to a specific job."""
+    if current_user.is_supervisor:
+        return {"has_applied": False}
+    
+    application_exists = await check_application_exists(db, job_id, current_user.id)
+    return {"has_applied": application_exists}

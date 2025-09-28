@@ -20,3 +20,12 @@ export const updateApplicationStatus = async (applicationId: number, update: Job
   const response = await api.put(`/api/applications/${applicationId}/status`, update);
   return response.data;
 };
+
+export const checkIfApplied = async (jobId: number) => {
+  try {
+    const response = await api.get<{ has_applied: boolean }>(`/api/applications/check/${jobId}`);
+    return response.data.has_applied;
+  } catch (error) {
+    return false;
+  }
+};
