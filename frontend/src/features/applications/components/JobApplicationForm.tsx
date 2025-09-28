@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { applyForJob } from '../api/applications';
@@ -17,6 +18,14 @@ export function JobApplicationForm({ jobId, onSuccess }: JobApplicationFormProps
   const { isLoading, startLoading, stopLoading } = useLoadingState();
   const [coverLetter, setCoverLetter] = useState('');
   const [resumeUrl, setResumeUrl] = useState('');
+  
+  const navigate = useNavigate();
+  
+  const handleSuccess = () => {
+    onSuccess?.();
+    // Navigate to my-applications page after successful submission
+    navigate('/my-applications');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +54,7 @@ export function JobApplicationForm({ jobId, onSuccess }: JobApplicationFormProps
       });
       setCoverLetter('');
       setResumeUrl('');
-      onSuccess?.();
+      handleSuccess();
     } catch (error) {
       toast({
         title: 'Error',

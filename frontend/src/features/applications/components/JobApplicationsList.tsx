@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useImperativeHandle, forwardRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useLoadingState } from '@/hooks/useLoadingState';
 import { getJobApplications, updateApplicationStatus } from '../api/applications';
@@ -15,9 +15,10 @@ import {
 
 interface JobApplicationsListProps {
   jobId: number;
+  showMyApplications?: boolean;
 }
 
-export function JobApplicationsList({ jobId }: JobApplicationsListProps) {
+export function JobApplicationsList({ jobId, showMyApplications = false }: JobApplicationsListProps) {
   const { toast } = useToast();
   const { isLoading, error, startLoading, stopLoading } = useLoadingState();
   const [applications, setApplications] = useState<JobApplication[]>([]);
@@ -29,7 +30,7 @@ export function JobApplicationsList({ jobId }: JobApplicationsListProps) {
   const loadApplications = async () => {
     try {
       startLoading();
-      const data = await getJobApplications(jobId);
+      const data = await (showMyApplications ? getJobApplications(jobId) : getJobApplications(jobId));
       setApplications(data);
     } catch (error) {
       toast({
