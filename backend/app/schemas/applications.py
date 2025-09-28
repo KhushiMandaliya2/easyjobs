@@ -95,7 +95,9 @@ class JobApplicationResponse(JobApplicationBase):
     updated_at: datetime
     job: JobResponse
     applicant: UserResponse
-    interviews: list[InterviewResponse] = []
+    interviews: Optional[list[InterviewResponse]] = []
 
     class Config:
+        from_attributes = True
+        arbitrary_types_allowed = True
         from_attributes = True

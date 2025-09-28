@@ -82,15 +82,24 @@ async def update_application(
             detail="Only employers can update application status"
         )
     
-    # Ensure the status is lowercase to match our expected values
-    status_value = application_update.status.lower()
-    
-    return await update_application_status(
-        db,
-        application_id,
-        status_value,
-        current_user.id
-    )
+    try:
+        # Ensure the status is lowercase to match our expected values
+        status_value = application_update.status.lower()
+        
+        updated_application = await update_application_status(
+            db,
+            application_id,
+            status_value,
+            current_user.id
+        )
+        
+        # Convert to response model
+        return JobApplicationResponse.from_orm(updated_application)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error updating application status: {str(e)}"
+        )
 
 
 @router.get("/check/{job_id}")

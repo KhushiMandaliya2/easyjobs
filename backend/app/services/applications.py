@@ -7,9 +7,11 @@ from app.schemas.applications import (
     JobApplicationCreate,
     JobApplicationUpdate,
     ApplicationStatus,
-    JobOfferCreate
+    JobOfferCreate,
+    JobApplicationResponse
 )
 from fastapi import HTTPException, status
+from sqlalchemy.orm.strategy_options import selectinload
 
 
 async def check_application_exists(
@@ -131,23 +133,31 @@ async def get_applications_by_applicant(db: AsyncSession, applicant_id: int):
 
 async def get_application_with_relationships(db: AsyncSession, application_id: int):
     """Get a job application with all its relationships loaded."""
-    stmt = (
-        select(JobApplication)
-        .where(JobApplication.id == application_id)
-        .options(
-            selectinload(JobApplication.job),
-            selectinload(JobApplication.applicant)
+    try:
+        stmt = (
+            select(JobApplication)
+            .where(JobApplication.id == application_id)
+            .options(
+                selectinload(JobApplication.job),
+                selectinload(JobApplication.applicant),
+                selectinload(JobApplication.interviews)
+            )
         )
-    )
-    result = await db.execute(stmt)
-    application = result.scalar_one_or_none()
-    
-    if not application:
+        result = await db.execute(stmt)
+        application = result.scalar_one_or_none()
+        
+        if not application:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Application not found"
+            )
+            
+        return application
+    except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Application not found"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error loading application relationships: {str(e)}"
         )
-    return application
 
 async def update_application_status(
     db: AsyncSession,
