@@ -80,7 +80,12 @@ class JobApplication(Base):
     # Application details
     cover_letter = Column(Text, nullable=True)
     resume_url = Column(String, nullable=False)  # URL or path to stored resume
-    status = Column(String, default="pending")  # pending, under_review, accepted, rejected
+    status = Column(String, default="pending")  # pending, under_review, interview_scheduled, interview_completed, offer_extended, offer_accepted, offer_declined, rejected
+    
+    # Offer details
+    offer_details = Column(Text, nullable=True)
+    offer_salary = Column(Float, nullable=True)
+    offer_expiry_date = Column(DateTime, nullable=True)
     
     # Timestamps
     created_at = Column(DateTime, default=func.now())
@@ -89,6 +94,31 @@ class JobApplication(Base):
     # Relationships
     job = relationship("Job", backref="applications")
     applicant = relationship("User", backref="job_applications")
+    interviews = relationship("Interview", back_populates="application")
     
     def __repr__(self):
         return f"<JobApplication {self.applicant_id} for Job {self.job_id}>"
+
+
+class Interview(Base):
+    __tablename__ = "interviews"
+
+    id = Column(Integer, primary_key=True, index=True)
+    application_id = Column(Integer, ForeignKey("job_applications.id"), nullable=False)
+    scheduled_at = Column(DateTime, nullable=False)
+    duration_minutes = Column(Integer, nullable=False)
+    location = Column(String, nullable=True)  # Can be a physical location or virtual meeting link
+    meeting_link = Column(String, nullable=True)
+    interview_type = Column(String, nullable=False)  # technical, behavioral, hr, etc.
+    notes = Column(Text, nullable=True)
+    status = Column(String, default="scheduled")  # scheduled, completed, cancelled, rescheduled
+    
+    # Timestamps
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    
+    # Relationships
+    application = relationship("JobApplication", back_populates="interviews")
+    
+    def __repr__(self):
+        return f"<Interview for Application {self.application_id} at {self.scheduled_at}>"

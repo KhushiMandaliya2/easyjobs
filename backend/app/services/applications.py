@@ -1,8 +1,14 @@
+from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from app.db.models import JobApplication, Job
-from app.schemas.applications import JobApplicationCreate, JobApplicationUpdate, ApplicationStatus
+from app.schemas.applications import (
+    JobApplicationCreate,
+    JobApplicationUpdate,
+    ApplicationStatus,
+    JobOfferCreate
+)
 from fastapi import HTTPException, status
 
 
@@ -65,7 +71,7 @@ async def create_application(
     await db.refresh(application)
     
     # Explicitly load relationships
-    await db.refresh(application, ['job', 'applicant'])
+    await db.refresh(application, ['job', 'applicant', 'interviews'])
     return application
 
 
@@ -76,7 +82,8 @@ async def get_application_by_id(db: AsyncSession, application_id: int):
         .filter(JobApplication.id == application_id)
         .options(
             selectinload(JobApplication.job),
-            selectinload(JobApplication.applicant)
+            selectinload(JobApplication.applicant),
+            selectinload(JobApplication.interviews)
         )
     )
     result = await db.execute(stmt)
@@ -97,7 +104,8 @@ async def get_applications_by_job(db: AsyncSession, job_id: int):
         .order_by(JobApplication.created_at.desc())
         .options(
             selectinload(JobApplication.job),
-            selectinload(JobApplication.applicant)
+            selectinload(JobApplication.applicant),
+            selectinload(JobApplication.interviews)
         )
     )
     result = await db.execute(stmt)
@@ -112,7 +120,9 @@ async def get_applications_by_applicant(db: AsyncSession, applicant_id: int):
         .filter(JobApplication.applicant_id == applicant_id)
         .order_by(JobApplication.created_at.desc())
         .options(
-            selectinload(JobApplication.job)
+            selectinload(JobApplication.job),
+            selectinload(JobApplication.applicant),
+            selectinload(JobApplication.interviews)
         )
     )
     result = await db.execute(stmt)
@@ -146,12 +156,13 @@ async def update_application_status(
     employer_id: int
 ):
     """Update a job application's status."""
-    # Validate the status value
-    if new_status not in ["pending", "under_review", "accepted", "rejected"]:
+    # Validate the status value against ApplicationStatus enum
+    if new_status not in [status.value for status in ApplicationStatus]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid status value"
         )
+    
     # Get application with relationships loaded
     application = await get_application_with_relationships(db, application_id)
     
@@ -168,4 +179,72 @@ async def update_application_status(
     
     # Refresh with relationships
     refreshed_application = await get_application_with_relationships(db, application_id)
+    return refreshed_application
+
+
+async def extend_job_offer(
+    db: AsyncSession,
+    application_id: int,
+    employer_id: int,
+    offer_data: JobOfferCreate
+):
+    """Extend a job offer to an applicant."""
+    # Get application with relationships loaded
+    application = await get_application_with_relationships(db, application_id)
+    
+    # Verify the employer owns the job
+    if application.job.posted_by_id != employer_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only make offers for jobs you posted"
+        )
+    
+    # Update application with offer details
+    application.status = ApplicationStatus.OFFER_EXTENDED
+    application.offer_details = offer_data.offer_details
+    application.offer_salary = offer_data.offer_salary
+    application.offer_expiry_date = offer_data.offer_expiry_date
+    
+    await db.commit()
+    await db.refresh(application)
+    return application
+
+
+async def respond_to_offer(
+    db: AsyncSession,
+    application_id: int,
+    applicant_id: int,
+    accept: bool
+):
+    """Accept or decline a job offer."""
+    # Get application with relationships loaded
+    application = await get_application_with_relationships(db, application_id)
+    
+    # Verify this is the applicant's application
+    if application.applicant_id != applicant_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only respond to your own job offers"
+        )
+    
+    # Verify there is an offer to respond to
+    if application.status != ApplicationStatus.OFFER_EXTENDED:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No offer to respond to"
+        )
+    
+    # Check if offer has expired
+    if application.offer_expiry_date and application.offer_expiry_date < datetime.now():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Offer has expired"
+        )
+    
+    # Update the status based on the response
+    application.status = ApplicationStatus.OFFER_ACCEPTED if accept else ApplicationStatus.OFFER_DECLINED
+    
+    await db.commit()
+    await db.refresh(application)
+    return application
     return refreshed_application

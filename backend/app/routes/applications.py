@@ -6,7 +6,8 @@ from app.db.models import User, JobApplication
 from app.schemas.applications import (
     JobApplicationCreate,
     JobApplicationUpdate,
-    JobApplicationResponse
+    JobApplicationResponse,
+    JobOfferCreate
 )
 from app.services.applications import (
     create_application,
@@ -14,7 +15,9 @@ from app.services.applications import (
     get_applications_by_job,
     get_applications_by_applicant,
     update_application_status,
-    check_application_exists
+    check_application_exists,
+    extend_job_offer,
+    respond_to_offer
 )
 from app.routes.auth import get_current_user
 
@@ -98,7 +101,42 @@ async def check_if_applied(
 ):
     """Check if the current user has applied to a specific job."""
     if current_user.is_supervisor:
-        return {"has_applied": False}
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Employers cannot apply for jobs"
+        )
+    return await check_application_exists(db, job_id, current_user.id)
+
+
+@router.post("/{application_id}/offer", response_model=JobApplicationResponse)
+async def make_job_offer(
+    application_id: int,
+    offer_data: JobOfferCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Extend a job offer to an applicant (only for employers)."""
+    if not current_user.is_supervisor:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only employers can make job offers"
+        )
     
-    application_exists = await check_application_exists(db, job_id, current_user.id)
-    return {"has_applied": application_exists}
+    return await extend_job_offer(db, application_id, current_user.id, offer_data)
+
+
+@router.post("/{application_id}/offer/respond", response_model=JobApplicationResponse)
+async def respond_to_job_offer(
+    application_id: int,
+    accept: bool,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Accept or decline a job offer (only for applicants)."""
+    if current_user.is_supervisor:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Employers cannot respond to job offers"
+        )
+    
+    return await respond_to_offer(db, application_id, current_user.id, accept)

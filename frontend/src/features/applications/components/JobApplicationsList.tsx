@@ -59,13 +59,30 @@ export function JobApplicationsList({ jobId }: JobApplicationsListProps) {
       let toastMessage = 'Application status updated successfully.';
       let toastVariant: 'default' | 'destructive' = 'default';
 
-      if (newStatus === ApplicationStatus.REJECTED) {
-        toastMessage = 'Application has been rejected.';
-        toastVariant = 'destructive';
-      } else if (newStatus === ApplicationStatus.ACCEPTED) {
-        toastMessage = 'Application has been accepted.';
-      } else if (newStatus === ApplicationStatus.UNDER_REVIEW) {
-        toastMessage = 'Application is now under review.';
+      switch (newStatus) {
+        case ApplicationStatus.REJECTED:
+          toastMessage = 'Application has been rejected.';
+          toastVariant = 'destructive';
+          break;
+        case ApplicationStatus.UNDER_REVIEW:
+          toastMessage = 'Application is now under review.';
+          break;
+        case ApplicationStatus.INTERVIEW_SCHEDULED:
+          toastMessage = 'Interview has been scheduled.';
+          break;
+        case ApplicationStatus.INTERVIEW_COMPLETED:
+          toastMessage = 'Interview has been marked as completed.';
+          break;
+        case ApplicationStatus.OFFER_EXTENDED:
+          toastMessage = 'Job offer has been extended to the candidate.';
+          break;
+        case ApplicationStatus.OFFER_ACCEPTED:
+          toastMessage = 'Job offer has been accepted by the candidate.';
+          break;
+        case ApplicationStatus.OFFER_DECLINED:
+          toastMessage = 'Job offer has been declined by the candidate.';
+          toastVariant = 'destructive';
+          break;
       }
 
       toast({
@@ -136,11 +153,19 @@ export function JobApplicationsList({ jobId }: JobApplicationsListProps) {
                       ? 'bg-yellow-100 text-yellow-800'
                       : application.status === ApplicationStatus.UNDER_REVIEW
                       ? 'bg-blue-100 text-blue-800'
-                      : application.status === ApplicationStatus.ACCEPTED
+                      : application.status === ApplicationStatus.INTERVIEW_SCHEDULED
+                      ? 'bg-purple-100 text-purple-800'
+                      : application.status === ApplicationStatus.INTERVIEW_COMPLETED
+                      ? 'bg-indigo-100 text-indigo-800'
+                      : application.status === ApplicationStatus.OFFER_EXTENDED
+                      ? 'bg-pink-100 text-pink-800'
+                      : application.status === ApplicationStatus.OFFER_ACCEPTED
                       ? 'bg-green-100 text-green-800'
+                      : application.status === ApplicationStatus.OFFER_DECLINED
+                      ? 'bg-orange-100 text-orange-800'
                       : 'bg-red-100 text-red-800'
                   }`}>
-                    {application.status}
+                    {application.status.replace('_', ' ')}
                   </span>
                 </TableCell>
                 <TableCell>{format(new Date(application.created_at), 'PPP')}</TableCell>
@@ -183,12 +208,63 @@ export function JobApplicationsList({ jobId }: JobApplicationsListProps) {
                     <>
                       <Button
                         onClick={() =>
-                          handleStatusUpdate(application.id, ApplicationStatus.ACCEPTED)
+                          handleStatusUpdate(
+                            application.id,
+                            ApplicationStatus.INTERVIEW_SCHEDULED
+                          )
                         }
                         variant="default"
                         className="mr-2"
                       >
-                        Accept
+                        Schedule Interview
+                      </Button>
+                      <Button
+                        onClick={() =>
+                          handleStatusUpdate(application.id, ApplicationStatus.REJECTED)
+                        }
+                        variant="destructive"
+                      >
+                        Reject
+                      </Button>
+                    </>
+                  )}
+                  {application.status === ApplicationStatus.INTERVIEW_SCHEDULED && (
+                    <>
+                      <Button
+                        onClick={() =>
+                          handleStatusUpdate(
+                            application.id,
+                            ApplicationStatus.INTERVIEW_COMPLETED
+                          )
+                        }
+                        variant="default"
+                        className="mr-2"
+                      >
+                        Mark Interview Complete
+                      </Button>
+                      <Button
+                        onClick={() =>
+                          handleStatusUpdate(application.id, ApplicationStatus.REJECTED)
+                        }
+                        variant="destructive"
+                      >
+                        Reject
+                      </Button>
+                    </>
+                  )}
+                  {application.status === ApplicationStatus.INTERVIEW_COMPLETED && (
+                    <>
+                      <Button
+                        onClick={() =>
+                          handleStatusUpdate(
+                            application.id,
+                            ApplicationStatus.OFFER_EXTENDED
+                          )
+                        }
+                        variant="default"
+                        className="mr-2"
+                      >
+                        Extend Offer
                       </Button>
                       <Button
                         onClick={() =>
