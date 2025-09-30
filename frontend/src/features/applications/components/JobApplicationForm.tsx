@@ -30,10 +30,10 @@ export function JobApplicationForm({ jobId, onSuccess }: JobApplicationFormProps
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!coverLetter.trim() || !resumeUrl.trim()) {
+    if (!resumeUrl.trim()) {
       toast({
         title: 'Error',
-        description: 'Please fill in all required fields.',
+        description: 'Resume URL is required.',
         variant: 'destructive',
       });
       return;

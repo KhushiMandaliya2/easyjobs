@@ -13,6 +13,7 @@ class JobApplicationBase(BaseModel):
 from enum import Enum
 
 class ApplicationStatus(str, Enum):
+    APPLIED = "applied"
     PENDING = "pending"
     UNDER_REVIEW = "under_review"
     INTERVIEW_SCHEDULED = "interview_scheduled"

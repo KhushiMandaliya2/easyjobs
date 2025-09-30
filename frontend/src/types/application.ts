@@ -30,6 +30,7 @@ export interface JobApplicationUpdate {
 }
 
 export enum ApplicationStatus {
+  APPLIED = "applied",
   PENDING = "pending",
   UNDER_REVIEW = "under_review",
   INTERVIEW_SCHEDULED = "interview_scheduled",

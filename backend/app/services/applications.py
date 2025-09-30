@@ -64,17 +64,38 @@ async def create_application(
             detail="This job is no longer accepting applications"
         )
 
+    # Create new application
     application = JobApplication(
-        **application_data.model_dump(),
-        applicant_id=applicant_id
+        job_id=application_data.job_id,
+        applicant_id=applicant_id,
+        cover_letter=application_data.cover_letter,
+        resume_url=application_data.resume_url,
+        status="applied"
     )
-    db.add(application)
-    await db.commit()
-    await db.refresh(application)
-    
-    # Explicitly load relationships
-    await db.refresh(application, ['job', 'applicant', 'interviews'])
-    return application
+
+    try:
+        # Save the application
+        db.add(application)
+        await db.commit()
+
+        # Fetch the complete application with relationships
+        stmt = (
+            select(JobApplication)
+            .filter(JobApplication.id == application.id)
+            .options(
+                selectinload(JobApplication.job),
+                selectinload(JobApplication.applicant),
+                selectinload(JobApplication.interviews)
+            )
+        )
+        result = await db.execute(stmt)
+        return result.scalar_one()
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create application: {str(e)}"
+        )
 
 
 async def get_application_by_id(db: AsyncSession, application_id: int):

@@ -80,7 +80,7 @@ class JobApplication(Base):
     # Application details
     cover_letter = Column(Text, nullable=True)
     resume_url = Column(String, nullable=False)  # URL or path to stored resume
-    status = Column(String, default="pending")  # pending, under_review, interview_scheduled, interview_completed, offer_extended, offer_accepted, offer_declined, rejected
+    status = Column(String, default="applied")  # applied, pending, under_review, interview_scheduled, interview_completed, offer_extended, offer_accepted, offer_declined, rejected
     
     # Offer details
     offer_details = Column(Text, nullable=True)
