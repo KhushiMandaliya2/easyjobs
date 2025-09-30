@@ -28,9 +28,11 @@ export default function EmployerDashboard() {
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <div className="text-center flex-1">
-          <h1 className="text-4xl font-bold mb-4 text-foreground">Employer Dashboard</h1>
-          <p className="text-lg text-muted-foreground">
+        <div className="text-center flex-1 mb-8">
+          <h1 className="text-5xl font-bold mb-6 text-foreground bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+            Employer Dashboard
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Manage your job postings and track applications
           </p>
         </div>

@@ -27,6 +27,15 @@ export default function Home() {
 
   return (
     <div className="space-y-12 py-8">
+
+      <div className="text-center mb-8">
+        <h1 className="text-5xl font-bold mb-6 text-foreground bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+          Welcome to Easy Jobs
+        </h1>
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          Your one-stop solution for job seekers and employers
+        </p>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-12">
         <div 
           onClick={() => navigate('/register?role=candidate')}
@@ -71,13 +80,13 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4 text-foreground">
-          Welcome to FastAPI React Starter
-        </h1>
-        <p className="text-lg text-muted-foreground">
-          A modern full-stack starter template with React 19 and FastAPI
-        </p>
+      <div className="flex justify-center space-x-4">
+        <Button onClick={() => navigate('/about')} variant="default">
+          About Us
+        </Button>
+        <Button onClick={() => navigate('/dashboard')} variant="secondary">
+          View Dashboard
+        </Button>
       </div>
 
       <div className="grid gap-6">
@@ -99,37 +108,6 @@ export default function Home() {
             </div>
           </div>
         </div>
-
-        <div
-          className="p-6 rounded-lg border border-border
-          bg-card text-card-foreground shadow-sm hover:shadow-md transition-all"
-        >
-          <div className="flex items-start space-x-4">
-            <div className="flex-shrink-0 p-2 rounded-lg bg-accent text-accent-foreground">
-              <Sparkles />
-            </div>
-            <div className="flex-1">
-              <h2 className="text-xl font-semibold mb-4 text-card-foreground">Features</h2>
-              <ul className="space-y-3 text-muted-foreground">
-                {features.map(({ id, text }) => (
-                  <li key={id} className="flex items-center">
-                    <span className="text-primary mr-2">✓</span>
-                    {text}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex justify-center space-x-4">
-        <Button onClick={() => navigate('/about')} variant="default">
-          Learn More
-        </Button>
-        <Button onClick={() => navigate('/dashboard')} variant="secondary">
-          View Dashboard
-        </Button>
       </div>
     </div>
   )

@@ -107,7 +107,7 @@ export default function RootLayout() {
         <footer className="bg-card text-card-foreground shadow-sm transition-colors mt-auto">
           <div className="container mx-auto px-6 py-4">
             <p className="text-center text-muted-foreground">
-              {currentYear} FastAPI React Starter. All rights reserved.
+              {currentYear} Easy Jobs, Inc. All rights reserved.
             </p>
           </div>
         </footer>
