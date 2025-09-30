@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/Dialog"
 import { JobApplicationForm } from '@/features/applications/components/JobApplicationForm'
-import { checkIfApplied } from '@/features/applications/api/applications'
+import { getAvailableJobs } from '@/features/jobs/api/jobs'
 
 interface Job {
   id: number
@@ -23,12 +23,13 @@ interface Job {
   created_at: string
   description: string
   requirements: string
-  salary_min?: number
-  salary_max?: number
+  salary_min: number | null
+  salary_max: number | null
   employment_type: string
   updated_at: string
   posted_by_id: number
   has_applied?: boolean
+  hasApplied?: boolean
 }
 
 export default function AvailableJobs() {
@@ -42,27 +43,11 @@ export default function AvailableJobs() {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/jobs`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        })
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch jobs')
-        }
-
-        const data = await response.json()
-        
-        // Check application status for each job
-        const jobsWithApplicationStatus = await Promise.all(
-          data.map(async (job: Job) => {
-            const hasApplied = await checkIfApplied(job.id)
-            return { ...job, has_applied: hasApplied }
-          })
-        )
-        
-        setJobs(jobsWithApplicationStatus)
+        const jobs = await getAvailableJobs()
+        setJobs(jobs.map(job => ({
+          ...job,
+          has_applied: job.hasApplied
+        })))
       } catch (error) {
         toast({
           title: 'Error',
@@ -79,11 +64,11 @@ export default function AvailableJobs() {
     }
   }, [token, toast])
 
-  function formatSalaryRange(min?: number, max?: number): string {
+  function formatSalaryRange(min: number | null, max: number | null): string {
     if (!min && !max) return 'Salary not specified'
     if (min && !max) return `$${min.toLocaleString()}+`
     if (!min && max) return `Up to $${max.toLocaleString()}`
-    return `$${min?.toLocaleString()} - $${max?.toLocaleString()}`
+    return min && max ? `$${min.toLocaleString()} - $${max.toLocaleString()}` : 'Salary not specified'
   }
 
   const handleApply = (jobId: number) => {
@@ -100,11 +85,21 @@ export default function AvailableJobs() {
 
   const handleApplicationSuccess = () => {
     setSelectedJobId(null);
+    // Update the job's application status in the local state
+    setJobs(prevJobs =>
+      prevJobs.map(job =>
+        job.id === selectedJobId
+          ? { ...job, has_applied: true }
+          : job
+      )
+    );
     toast({
       title: 'Success',
-      description: 'Your application has been submitted successfully.',
+      description: 'Application submitted successfully!',
     });
   };
+
+
 
   return (
     <div className="space-y-8">
