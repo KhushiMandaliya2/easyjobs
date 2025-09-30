@@ -23,9 +23,11 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4 text-foreground">Job Seeker Dashboard</h1>
-        <p className="text-lg text-muted-foreground">
+      <div className="text-center mb-8">
+        <h1 className="text-5xl font-bold mb-6 text-foreground bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+          Job Seeker Dashboard
+        </h1>
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
           Find and manage your job applications
         </p>
       </div>

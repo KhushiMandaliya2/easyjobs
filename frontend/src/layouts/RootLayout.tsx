@@ -12,8 +12,6 @@ const publicNavLinks = [
 
 const jobSeekerLinks = [
   { to: '/dashboard', label: 'Dashboard' },
-  { to: '/jobs', label: 'Find Jobs' },
-  { to: '/my-applications', label: 'My Applications' },
 ] as const
 
 const employerLinks = [
