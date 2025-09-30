@@ -40,7 +40,7 @@ export default function Dashboard() {
           </div>
         }
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
           <DashboardCard
             title="Find Jobs"
             description="Search and explore job opportunities"
@@ -51,12 +51,6 @@ export default function Dashboard() {
             title="My Applications"
             description="Track your job applications"
             icon={<Briefcase />}
-            onClick={handleCardClick}
-          />
-          <DashboardCard
-            title="Saved Jobs"
-            description="View and manage saved jobs"
-            icon={<Star />}
             onClick={handleCardClick}
           />
         </div>
