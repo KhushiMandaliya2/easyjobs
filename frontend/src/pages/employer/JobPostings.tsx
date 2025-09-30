@@ -24,8 +24,8 @@ interface Job {
   created_at: string
   description: string
   requirements: string
-  salary_min?: number
-  salary_max?: number
+  salary_min: number | null
+  salary_max: number | null
   employment_type: string
   updated_at: string
   posted_by_id: number
@@ -152,32 +152,23 @@ export default function JobPostings() {
             {jobs.map((job) => (
               <div
                 key={job.id}
-                className="p-6 rounded-lg border border-border bg-card hover:shadow-md transition-all relative group"
+                className="p-6 rounded-lg border border-border bg-card hover:shadow-md transition-all group cursor-pointer"
                 onClick={() => navigate(`/employer/jobs/${job.id}`)}
                 role="button"
                 tabIndex={0}
               >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2">{job.title}</h3>
-                    <div className="space-y-1 text-muted-foreground">
-                      <p>{job.company_name}</p>
-                      <p>{job.location}</p>
+                <div className="flex flex-col gap-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2">{job.title}</h3>
+                      <div className="space-y-1 text-muted-foreground">
+                        <p>{job.company_name}</p>
+                        <p>{job.location}</p>
+                        <p>Posted on {new Date(job.created_at).toLocaleDateString()}</p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex flex-col items-end">
-                    <span className={`px-3 py-1 rounded-full text-sm ${
-                      job.status === 'active' 
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
-                        : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100'
-                    }`}>
-                      {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
-                    </span>
-                    <span className="text-sm text-muted-foreground mt-2">
-                      Posted on {new Date(job.created_at).toLocaleDateString()}
-                    </span>
-                    <div className="absolute right-4 top-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="flex gap-2">
+                    <div className="flex items-center gap-3">
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button
                           variant="ghost"
                           size="icon"
@@ -195,6 +186,13 @@ export default function JobPostings() {
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
+                      <span className={`px-3 py-1 rounded-full text-sm whitespace-nowrap ${
+                        job.status === 'active' 
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
+                          : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100'
+                      }`}>
+                        {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
+                      </span>
                     </div>
                   </div>
                 </div>
