@@ -189,8 +189,7 @@ export function JobApplicationsList({ jobId }: JobApplicationsListProps) {
                             ApplicationStatus.UNDER_REVIEW
                           )
                         }
-                        variant="secondary"
-                        className="mr-2"
+                        className="mr-2 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white"
                       >
                         Review
                       </Button>
