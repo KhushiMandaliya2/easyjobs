@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, ReactNode, useCallback } from 'react'
+import { createContext, useContext, useReducer, ReactNode, useCallback, useEffect } from 'react'
 import { AuthState, LoginCredentials, RegisterCredentials, AuthResult } from '@/types/auth'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
@@ -25,9 +25,9 @@ const AuthDispatchContext = createContext<{
 } | null>(null)
 
 const getInitialState = (): AuthState => ({
-  isAuthenticated: !!localStorage.getItem('token'),
+  isAuthenticated: false, // Start with false and let initialization handle this
   token: localStorage.getItem('token'),
-  isLoading: false,
+  isLoading: true, // Start with true since we need to validate the token
   user: null,
 })
 
@@ -46,6 +46,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         isAuthenticated: false,
         token: null,
         user: null,
+        isLoading: false,
       }
     case AUTH_ACTIONS.SET_LOADING:
       return {
@@ -56,6 +57,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
       return {
         ...state,
         user: action.payload.user,
+        isAuthenticated: !!action.payload.user, // Ensure isAuthenticated reflects user state
       }
     default:
       return state
@@ -69,33 +71,48 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [state, dispatch] = useReducer(authReducer, getInitialState())
 
-  // Try to fetch user data if token exists
-  useCallback(async () => {
-    const token = localStorage.getItem('token')
-    if (token && !state.user) {
-      try {
-        const response = await fetch(`${API_URL}/api/auth/me`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        })
-        
-        if (response.ok) {
-          const userData = await response.json()
-          dispatch({
-            type: AUTH_ACTIONS.SET_USER,
-            payload: { user: userData },
+  // Initialize auth state on mount and handle token validation
+  useEffect(() => {
+    const initializeAuth = async () => {
+      const token = localStorage.getItem('token')
+      if (token) {
+        dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: true })
+        try {
+          const response = await fetch(`${API_URL}/api/auth/me`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
           })
-        } else {
-          // If token is invalid, log out
+          
+          if (response.ok) {
+            const userData = await response.json()
+            dispatch({
+              type: AUTH_ACTIONS.LOGIN_SUCCESS,
+              payload: { token }
+            })
+            dispatch({
+              type: AUTH_ACTIONS.SET_USER,
+              payload: { user: userData },
+            })
+          } else {
+            // If token is invalid, log out
+            localStorage.removeItem('token')
+            dispatch({ type: AUTH_ACTIONS.LOGOUT })
+          }
+        } catch (error) {
+          console.error('Failed to fetch user data:', error)
           localStorage.removeItem('token')
           dispatch({ type: AUTH_ACTIONS.LOGOUT })
+        } finally {
+          dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false })
         }
-      } catch (error) {
-        console.error('Failed to fetch user data:', error)
+      } else {
+        dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false })
       }
     }
-  }, [state.user])()
+
+    initializeAuth()
+  }, [])
   
 
   const login = useCallback(async (credentials: LoginCredentials): Promise<AuthResult> => {
