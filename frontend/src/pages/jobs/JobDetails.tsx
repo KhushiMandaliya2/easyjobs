@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/Dialog';
 import { JobApplicationForm } from '@/features/applications/components/JobApplicationForm';
 import { JobApplicationsList } from '@/features/applications/components/JobApplicationsList';
-import { checkIfApplied } from '@/features/applications/api/applications';
+import { getApplicationStatus } from '@/features/jobs/api/jobs';
 
 interface Job {
   id: number;
@@ -54,7 +54,7 @@ export default function JobDetails() {
         }
 
         const data = await response.json();
-        const hasApplied = await checkIfApplied(data.id);
+        const hasApplied = await getApplicationStatus(Number(id));
         setJob({ ...data, has_applied: hasApplied });
       } catch (error) {
         toast({
@@ -91,8 +91,12 @@ export default function JobDetails() {
     setShowApplicationForm(true);
   };
 
-  const handleApplicationSuccess = () => {
+  const handleApplicationSuccess = async () => {
     setShowApplicationForm(false);
+    if (id) {
+      const hasApplied = await getApplicationStatus(Number(id));
+      setJob(currentJob => currentJob ? { ...currentJob, has_applied: hasApplied } : null);
+    }
     toast({
       title: 'Success',
       description: 'Your application has been submitted successfully.',

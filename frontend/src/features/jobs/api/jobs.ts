@@ -27,3 +27,26 @@ export const getUserApplications = async () => {
   const response = await api.get('/api/applications/my-applications');
   return response.data;
 };
+
+export const getApplicationStatus = async (jobId: number) => {
+  try {
+    const applications = await getUserApplications();
+    return applications.some((app: any) => app.job_id === jobId);
+  } catch (error) {
+    console.error('Error checking application status:', error);
+    return false;
+  }
+};
+
+export const getJobById = async (jobId: number): Promise<JobWithApplicationStatus> => {
+  const response = await api.get<Job>(`/api/jobs/${jobId}`);
+  const applications = await getUserApplications();
+  
+  // Check if user has applied to this job
+  const hasApplied = applications.some(app => app.job_id === jobId);
+  
+  return {
+    ...response.data,
+    hasApplied
+  };
+};
