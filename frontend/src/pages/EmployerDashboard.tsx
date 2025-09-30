@@ -3,6 +3,7 @@ import { Briefcase, Users, LineChart } from 'lucide-react'
 import { useAppDispatch } from '../context/AppContext'
 import { showNotification } from '../context/AppContext'
 import { useNavigate } from 'react-router-dom'
+import { Button } from '@/components/ui/Button'
 
 export default function EmployerDashboard() {
   const dispatch = useAppDispatch()
@@ -34,12 +35,11 @@ export default function EmployerDashboard() {
           </p>
         </div>
         <div>
-          <button
+          <Button
             onClick={() => navigate('/employer/create-job')}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md"
           >
             Create New Job
-          </button>
+          </Button>
         </div>
       </div>
 

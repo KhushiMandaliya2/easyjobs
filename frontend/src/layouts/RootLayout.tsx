@@ -18,7 +18,6 @@ const jobSeekerLinks = [
 
 const employerLinks = [
   { to: '/dashboard', label: 'Dashboard' },
-  { to: '/employer/jobs', label: 'Job Postings' },
 ] as const
 
 function Navigation() {
