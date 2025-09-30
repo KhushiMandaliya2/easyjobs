@@ -180,7 +180,7 @@ export function JobApplicationsList({ jobId }: JobApplicationsListProps) {
                   </a>
                 </TableCell>
                 <TableCell>
-                  {application.status === ApplicationStatus.PENDING && (
+                  {(application.status === ApplicationStatus.PENDING || application.status === ApplicationStatus.APPLIED) && (
                     <>
                       <Button
                         onClick={() =>
