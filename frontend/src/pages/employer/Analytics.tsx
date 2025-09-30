@@ -1,14 +1,20 @@
 import { useState, useEffect } from 'react'
 import { useToast } from '@/hooks/use-toast'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/Button'
+import { addDays, format, subDays } from 'date-fns'
 import {
   BarChart,
+  LineChart,
+  Line,
   Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Legend,
 } from 'recharts'
 
 interface JobAnalytics {
@@ -26,14 +32,23 @@ interface JobAnalytics {
   }
 }
 
+interface TimelineData {
+  date: string
+  applications: number
+}
+
 export default function Analytics() {
   const { toast } = useToast()
   const [analyticsData, setAnalyticsData] = useState<JobAnalytics[]>([])
+  const [timelineData, setTimelineData] = useState<TimelineData[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [startDate, setStartDate] = useState(format(subDays(new Date(), 30), 'yyyy-MM-dd'))
+  const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'))
 
   useEffect(() => {
     fetchAnalytics()
-  }, [])
+    fetchTimelineData()
+  }, [startDate, endDate])
 
   const fetchAnalytics = async () => {
     try {
@@ -57,6 +72,32 @@ export default function Analytics() {
       })
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const fetchTimelineData = async () => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/analytics/employer/timeline?start_date=${startDate}&end_date=${endDate}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch timeline data')
+      }
+
+      const data = await response.json()
+      setTimelineData(data)
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to fetch timeline data',
+        variant: 'destructive',
+      })
     }
   }
 
@@ -106,6 +147,61 @@ export default function Analytics() {
 
       <Card className="col-span-4">
         <CardHeader>
+          <CardTitle>Applications Timeline</CardTitle>
+          <div className="flex gap-4 items-center mt-4">
+            <div className="grid gap-2">
+              <label htmlFor="start-date" className="text-sm font-medium">
+                Start Date
+              </label>
+              <Input
+                id="start-date"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <label htmlFor="end-date" className="text-sm font-medium">
+                End Date
+              </label>
+              <Input
+                id="end-date"
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-4">
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={timelineData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={(value) => format(new Date(value), 'MMM d')}
+                />
+                <YAxis />
+                <Tooltip 
+                  labelFormatter={(value) => format(new Date(value), 'MMM d, yyyy')}
+                />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="applications"
+                  name="Applications"
+                  stroke="#4ade80"
+                  strokeWidth={2}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="col-span-4">
+        <CardHeader>
           <CardTitle>Application Status by Job</CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
@@ -116,6 +212,7 @@ export default function Analytics() {
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip />
+                <Legend />
                 <Bar dataKey="pending" fill="#fbbf24" stackId="a" />
                 <Bar dataKey="under review" fill="#60a5fa" stackId="a" />
                 <Bar dataKey="interview scheduled" fill="#34d399" stackId="a" />
