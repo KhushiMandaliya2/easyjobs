@@ -11,6 +11,8 @@ const Login = lazy(() => import('../pages/Login'))
 const Register = lazy(() => import('../pages/Register'))
 const JobPostings = lazy(() => import('../pages/employer/JobPostings'))
 const CreateJob = lazy(() => import('../pages/employer/CreateJob'))
+const EmployerJobDetails = lazy(() => import('../pages/employer/JobDetails'))
+const EditJob = lazy(() => import('../pages/employer/EditJob'))
 const AvailableJobs = lazy(() => import('../pages/jobs/AvailableJobs'))
 const JobDetails = lazy(() => import('../pages/jobs/JobDetails'))
 const MyApplications = lazy(() => import('../pages/jobs/MyApplications'))
@@ -63,6 +65,14 @@ const routes = {
     {
       path: 'employer/jobs',
       element: <JobPostings />,
+    },
+    {
+      path: 'employer/jobs/:id',
+      element: <EmployerJobDetails />,
+    },
+    {
+      path: 'employer/jobs/:id/edit',
+      element: <EditJob />,
     },
     {
       path: 'employer/create-job',

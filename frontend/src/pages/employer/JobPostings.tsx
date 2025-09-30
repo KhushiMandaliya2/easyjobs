@@ -1,9 +1,19 @@
 import { useState, useEffect } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { useToast } from '@/hooks/use-toast'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/AlertDialog"
 
 interface Job {
   id: number
@@ -27,6 +37,54 @@ export default function JobPostings() {
   const { toast } = useToast()
   const [jobs, setJobs] = useState<Job[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [deleteJobId, setDeleteJobId] = useState<number | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const handleDelete = (jobId: number, event: React.MouseEvent) => {
+    event.stopPropagation()
+    setDeleteJobId(jobId)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const handleEdit = (jobId: number, event: React.MouseEvent) => {
+    event.stopPropagation()
+    navigate(`/employer/jobs/${jobId}/edit`)
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteJobId) return
+
+    setIsDeleting(true)
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/jobs/${deleteJobId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete job')
+      }
+
+      setJobs(jobs.filter(job => job.id !== deleteJobId))
+      toast({
+        title: 'Success',
+        description: 'Job posting deleted successfully',
+      })
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to delete job',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsDeleting(false)
+      setIsDeleteDialogOpen(false)
+      setDeleteJobId(null)
+    }
+  }
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -90,10 +148,11 @@ export default function JobPostings() {
             </Button>
           </div>
         ) : (
-          jobs.map((job) => (
+          <div className="space-y-4">
+            {jobs.map((job) => (
               <div
                 key={job.id}
-                className="p-6 rounded-lg border border-border bg-card hover:shadow-md transition-all"
+                className="p-6 rounded-lg border border-border bg-card hover:shadow-md transition-all relative group"
                 onClick={() => navigate(`/employer/jobs/${job.id}`)}
                 role="button"
                 tabIndex={0}
@@ -117,12 +176,55 @@ export default function JobPostings() {
                     <span className="text-sm text-muted-foreground mt-2">
                       Posted on {new Date(job.created_at).toLocaleDateString()}
                     </span>
+                    <div className="absolute right-4 top-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => handleEdit(job.id, e)}
+                          className="h-8 w-8"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => handleDelete(job.id, e)}
+                          className="h-8 w-8 hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
+
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the job posting
+                and remove all associated applications.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </div>
   )
 }
